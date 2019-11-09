@@ -43,7 +43,7 @@ class Rental {
 
 class Customer {
    private String _name;
-   private Vector _rentals = new Vector();
+   private Vector<Rental> _rentals = new Vector<Rental>();
 
    public Customer (String name){
       _name = name;
@@ -99,4 +99,29 @@ class Customer {
      result += "You earned " + String.valueOf(frequentRenterPoints) +
              " frequent renter points";
      return result;
+  }
+}
+
+public void testStatement(){
+  Movie movieOne = new Movie("acao", 001);
+  Movie movieTwo = new Movie("drama", 002);
+  Movie movieThree = new Movie("comedia", 003);
+
+  Rental rentalOne = new Rental(movieOne, 5);
+  Rental rentalTwo = new Rental(movieTwo, 10);
+  Rental rentalThree = new Rental(movieThree, 7);
+
+  Customer customer = new Customer("Lucas");
+  customer.addRental(rentalOne);
+  customer.addRental(rentalTwo);
+  customer.addRental(rentalThree);
+
+  String expected = "Rental Record for Lucas\n";
+  expected += " acao  15.0\n";
+  expected += " drama 12.0\n";
+  expected += " comedia 0.0\n";
+  expected += "Amount owed is 27.0\n";
+  expected += "You earned 4 frequent renter points" ;
+
+   assertEquals(expected, customer.statement());
 }
