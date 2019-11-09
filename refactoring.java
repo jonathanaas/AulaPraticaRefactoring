@@ -1,3 +1,53 @@
+abstract class Price {
+   abstract int getPriceCode();
+
+   abstract double getCharge(int daysRented);
+
+   int getFrequentRenterPoints(int daysRented) {
+       return 1;
+   }
+ }
+ 
+class ChildrensPrice extends Price {
+   int getPriceCode() {
+       return Movie.CHILDRENS;
+   }
+
+   double getCharge(int daysRented) {
+       double result = 1.5;
+       if (daysRented > 3)
+          result += (daysRented - 3) * 1.5;
+       return result;
+   }
+}
+ 
+class NewReleasePrice extends Price {
+   int getPriceCode() {
+       return Movie.NEW_RELEASE;
+   }
+
+   double getCharge(int daysRented){
+       return daysRented * 3;
+   }
+
+   int getFrequentRenterPoints(int daysRented) {
+       return (daysRented > 1) ? 2: 1;
+   }   
+}
+ 
+class RegularPrice extends Price {
+   int getPriceCode() {
+       return Movie.REGULAR;
+   }
+
+   double getCharge(int daysRented) {
+       double result = 2;
+       if (daysRented > 2)
+          result += (daysRented - 2) * 1.5;
+       return result;
+   }
+}
+
 public class Movie {
 
   public static final int  CHILDRENS = 2;
@@ -5,24 +55,44 @@ public class Movie {
   public static final int  NEW_RELEASE = 1;
 
   private String _title;
-  private int _priceCode;
+  private Price _price;
 
   public Movie(String title, int priceCode) {
       _title = title;
-      _priceCode = priceCode;
+      setPriceCode(priceCode);
   }
 
   public int getPriceCode() {
-      return _priceCode;
+      return _price.getPriceCode();
   }
 
   public void setPriceCode(int arg) {
-     _priceCode = arg;
+     switch (arg) {
+         case REGULAR:
+            _price = new RegularPrice();
+            break;
+         case CHILDRENS:
+            _price = new ChildrensPrice();
+            break;
+         case NEW_RELEASE:
+            _price = new NewReleasePrice();
+            break;
+         default:
+            throw new IllegalArgumentException("Incorrect Price Code");
+      }
   }
 
   public String getTitle (){
       return _title;
-  };
+  }
+
+  double getCharge(int daysRented) {
+      return _price.getCharge(daysRented);
+  }
+
+  int getFrequentRenterPoints(int daysRented) {
+      return _price.getFrequentRenterPoints(daysRented);
+  }
 }
 
 class Rental {
@@ -41,30 +111,11 @@ class Rental {
     }
 
     public double getCharge() {
-      double result = 0;
-      switch (getMovie().getPriceCode()) {
-        case Movie.REGULAR:
-           result += 2;
-           if (getDaysRented() > 2)
-              result += (getDaysRented() - 2) * 1.5;
-           break;
-        case Movie.NEW_RELEASE:
-           result += getDaysRented() * 3;
-           break;
-        case Movie.CHILDRENS:
-           result += 1.5;
-           if (getDaysRented() > 3)
-              result += (getDaysRented() - 3) * 1.5;
-           break;
-     }
-     return result;
+      return _movie.getCharge(_daysRented);
    }
 
    int getFrequentRenterPoints() {
-       if ((getMovie().getPriceCode() == Movie.NEW_RELEASE) && getDaysRented() > 1)
-          return 2;
-       else
-          return 1;
+       return _movie.getFrequentRenterPoints(_daysRented);
    }  
 }
 
@@ -145,9 +196,9 @@ class Customer {
 }
 
 public void testStatement(){
-  Movie movieOne = new Movie("acao", 001);
-  Movie movieTwo = new Movie("drama", 002);
-  Movie movieThree = new Movie("comedia", 003);
+  Movie movieOne = new Movie("acao", 0);
+  Movie movieTwo = new Movie("drama", 1);
+  Movie movieThree = new Movie("comedia", 2);
 
   Rental rentalOne = new Rental(movieOne, 5);
   Rental rentalTwo = new Rental(movieTwo, 10);
@@ -159,10 +210,10 @@ public void testStatement(){
   customer.addRental(rentalThree);
 
   String expected = "Rental Record for Lucas\n";
-  expected += " acao  15.0\n";
-  expected += " drama 12.0\n";
-  expected += " comedia 0.0\n";
-  expected += "Amount owed is 27.0\n";
+  expected += " acao  6.5\n";
+  expected += " drama 30.0\n";
+  expected += " comedia 7.5\n";
+  expected += "Amount owed is 44.0\n";
   expected += "You earned 4 frequent renter points" ;
 
    assertEquals(expected, customer.statement());
